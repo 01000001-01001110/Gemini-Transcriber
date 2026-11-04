@@ -1,6 +1,5 @@
 import os
 import time
-import base64
 import threading
 import tempfile
 import queue
@@ -29,14 +28,17 @@ if not API_KEY:
 SAMPLE_RATE = int(os.environ.get("SAMPLE_RATE", "16000"))
 PROCESSING_INTERVAL = int(os.environ.get("PROCESSING_INTERVAL", "5"))
 TRANSCRIPT_FILE = os.environ.get("TRANSCRIPT_FILE", "live_transcript.md")
+# Model id lives in .env so a retired model can be swapped without a code change.
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
 try:
-    from google import generativeai as genai
-    genai.configure(api_key=API_KEY)
+    from google import genai
+    from google.genai import types
+    client = genai.Client(api_key=API_KEY)
     print("Gemini API configured successfully")
 except ImportError:
     tk.Tk().withdraw()
-    messagebox.showerror("Error", "Failed to import Google Generative AI library. Install with: pip install google-generativeai")
+    messagebox.showerror("Error", "Failed to import Google Generative AI library. Install with: pip install google-genai")
     exit(1)
 
 # Global variables
@@ -276,36 +278,17 @@ def process_audio_segment():
         traceback.print_exc()
 
 def transcribe_audio(audio_file):
-    """Transcribe audio using Gemini Flash 2.0."""
+    """Transcribe audio with the Gemini model named by GEMINI_MODEL."""
     # Read audio file
     with open(audio_file, 'rb') as f:
         audio_data = f.read()
     
-    # Base64 encode audio data
-    b64_audio = base64.b64encode(audio_data).decode('utf-8')
-    
-    # Initialize Gemini model
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash-exp"
-    )
-    
-    # Create request payload with instructions as text, followed by audio
-    # Using the correct format expected by the API
-    request_data = {
-        "parts": [
-            {"text": "Transcribe the following audio verbatim. Provide only the exact words spoken, with no interpretation, summary, or additional context."},
-            {
-                "inline_data": {
-                    "mime_type": "audio/wav", 
-                    "data": b64_audio
-                }
-            }
-        ]
-    }
-    
+    prompt = "Transcribe the following audio verbatim. Provide only the exact words spoken, with no interpretation, summary, or additional context."
+    contents = [prompt, types.Part.from_bytes(data=audio_data, mime_type="audio/wav")]
+
     # Call Gemini API
     try:
-        response = model.generate_content(request_data)
+        response = client.models.generate_content(model=GEMINI_MODEL, contents=contents)
         
         if hasattr(response, 'text') and response.text:
             # Remove any remaining interpretation phrases just in case
@@ -371,4 +354,4 @@ def main():
     icon.run()
 
 if __name__ == "__main__":
-    main()
+    main()
