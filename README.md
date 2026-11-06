@@ -31,7 +31,7 @@ I have been looking for a better transcriber solution to whisper. This PoC was a
 
 ## Requirements
 
-- Python 3.7 or higher
+- Python 3.11 or higher
 - The following Python packages:
   - `numpy`
   - `sounddevice`
@@ -39,7 +39,7 @@ I have been looking for a better transcriber solution to whisper. This PoC was a
   - `Pillow`
   - `python-dotenv`
   - `pystray`
-  - `google-generativeai`
+  - `google-genai`
 
 A sample `requirements.txt` is provided:
 
@@ -50,7 +50,7 @@ scipy
 Pillow
 python-dotenv
 pystray
-google-generativeai
+google-genai
 ```
 
 *Note:* The built-in libraries such as `os`, `time`, `threading`, `tempfile`, `queue`, `datetime`, and `tkinter` are part of the standard Python distribution.
@@ -209,7 +209,7 @@ The application expects certain environment variables. You can define them in a 
   Verify that your microphone is properly connected and configured. The application uses the `sounddevice` library for audio recording.
 
 - **Google Gemini API Errors:**  
-  If transcription fails, double-check that you have installed the `google-generativeai` library and that your API key is valid.
+  If transcription fails, double-check that you have installed the `google-genai` library and that your API key is valid.
 
 ---
 
